@@ -70,40 +70,44 @@
         }
     }
     
-    p.move = function(position) {
-        var board = this.board;
+    p.move = function(position, speed) {
+        var player = this;
+        var board = player.board;
         var players = board.players;
         
-        if (this.id !== board.state.turn) {
+        if (player.id !== board.state.turn) {
             board.log("It's " + players[board.state.turn].name + "'s turn");
             return;
         }
         
-        if (this.position == position || position > 100 || position < 1) {
-            board.log("Destination <= Origin");
+        if (player.position == position || position > 100 || position < 1) {
+            board.log("Invalid move");
             return;
         }
         
-        if (this.position < position) {
-            this.removeGoti();
-            this.position++;
-            this.placeGoti(this.position);
+        if (player.position < position) {
+            player.removeGoti();
+            player.position++;
+            player.placeGoti(player.position);
         } else {
-            this.removeGoti();
-            this.position--;
-            this.placeGoti(this.position);
+            player.removeGoti();
+            player.position--;
+            player.placeGoti(player.position);
         }
         
-        if (this.position != position) {
-            var me = this;
+        speed = typeof speed !== 'undefined' ? speed : 100;
+        
+        if (player.position != position) {
             window.setTimeout(function() {
-                me.move(position);
-            }, 100);
+                player.move(position, speed);
+            }, speed);
         } else {
-            var check = board.isSmooth(this.position);
+            var check = board.isSmooth(player.position);
             if (check) {
-                board.log('Not smooth.');
-                this.move(check);
+                board.log('Not smooth');
+                setTimeout(function() {
+                    player.move(check, 15);
+                }, 1000);
             } else {
                 board.nextPlayer();
                 return true;
@@ -182,7 +186,7 @@
     b.addPlayer = function(name) {
         var id = this.players.length;
         if (id >= this.config.maxplayers) {
-            this.log("Maximum players limit reached, Can't add more players.");
+            this.log("Maximum players limit reached, Can't add more players");
             return;
         }
         var player = new this.player(this, id, name, this.config.colors[id]);
@@ -215,7 +219,6 @@
             }
         
         }
-        
         return false;
     }
     
