@@ -7,8 +7,9 @@
         this.config = {
             maxplayers: 3,
             colors: ["red", "green", "blue"],
-            snakes: [{s: 58,e: 9}, {s: 75,e: 40}],
-            ladders: [{s: 12,e: 47}, {s: 6,e: 24}]
+			snake_ladder_layer: "images/snake_ladder_layer.gif",
+            snakes: [{s: 36,e: 2}, {s:46,e: 29}, {s: 79,e: 42}, {s: 93,e: 53}],
+            ladders: [{s: 8,e: 49}, {s:22,e: 57}, {s: 54,e: 85}, {s: 61,e: 98}]
         };
         this.state = {
             playerCount: 0,
@@ -144,6 +145,17 @@
         canvas.style.zIndex = 2;
         document.body.appendChild(canvas);
         var boardFg = this.boardFg = canvas.getContext('2d');
+		
+		canvas = document.createElement('canvas');
+        canvas.height = this.height;
+        canvas.width = this.width;
+        canvas.style.zIndex = 3;	
+		var snake_ladder_layer = new Image();
+		snake_ladder_layer.src = this.config.snake_ladder_layer;
+		snake_ladder_layer.onload = function() {
+			canvas.getContext('2d').drawImage(snake_ladder_layer, 0, 0, canvas.width, canvas.height);
+			document.body.appendChild(canvas);
+		}
         
         var a = 100, b = 91, w = this.width / 10, h = this.height / 10, y = -h, x, color, i;
         boardBg.font = w / 4 + 'px Georgia';
@@ -184,11 +196,17 @@
     }
     
     b.addPlayer = function(name) {
+		if(typeof name == "undefined"){
+			this.log('Please specify name of the player.');
+			return false;
+		}
+	
         var id = this.players.length;
         if (id >= this.config.maxplayers) {
             this.log("Maximum players limit reached, Can't add more players");
-            return;
+            return false;
         }
+		
         var player = new this.player(this, id, name, this.config.colors[id]);
         player.placeGoti(1);
         this.players.push(player);
@@ -228,6 +246,11 @@
     }
     
     b.showDice = function(value) {
+		value = parseInt(value);
+		if(isNaN(value) || value < 1 || value > 6) {
+			this.log("Invalid value.");
+			return false;
+		}	
         var dice = document.getElementById('dice');
         dice.src = 'images/f' + value + '.png';
     }
