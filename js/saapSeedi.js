@@ -7,9 +7,9 @@
         this.config = {
             maxplayers: 3,
             colors: ["red", "green", "blue"],
-			snake_ladder_layer: "images/snake_ladder_layer.gif",
-            snakes: [{s: 36,e: 2}, {s:46,e: 29}, {s: 79,e: 42}, {s: 93,e: 53}],
-            ladders: [{s: 8,e: 49}, {s:22,e: 57}, {s: 54,e: 85}, {s: 61,e: 98}]
+            snakeLadderLayer: "images/snake_ladder_layer.gif",
+            snakes: [{s: 36,e: 2}, {s: 46,e: 29}, {s: 79,e: 42}, {s: 93,e: 53}],
+            ladders: [{s: 8,e: 49}, {s: 22,e: 57}, {s: 54,e: 85}, {s: 61,e: 98}]
         };
         this.state = {
             playerCount: 0,
@@ -71,19 +71,19 @@
         }
     }
     
-    p.move = function(position, speed) {
+    p.move = function(position, speed, isSpecial) {
         var player = this;
         var board = player.board;
         var players = board.players;
         
-        if (player.id !== board.state.turn) {
-            board.log("It's " + players[board.state.turn].name + "'s turn");
-            return;
+        if (typeof isSpecial == "undefined" && player.id !== board.state.turn) {
+            board.log("It's " + players[board.state.turn].name + "'s turn.");
+            return false;
         }
         
         if (player.position == position || position > 100 || position < 1) {
-            board.log("Invalid move");
-            return;
+            board.log("Invalid move.");
+            return false;
         }
         
         if (player.position < position) {
@@ -100,17 +100,29 @@
         
         if (player.position != position) {
             window.setTimeout(function() {
-                player.move(position, speed);
+                player.move(position, speed, isSpecial);
             }, speed);
         } else {
             var check = board.isSmooth(player.position);
             if (check) {
                 board.log('Not smooth');
                 setTimeout(function() {
-                    player.move(check, 15);
+                    player.move(check, 15, isSpecial);
                 }, 1000);
             } else {
-                board.nextPlayer();
+                var players_id;
+                for (players_id in players) {
+                    if (players[players_id]['position'] == player.position && players_id != player.id) {
+                        board.log(player.name + " killed " + players[players_id]['name'] + ".");
+                        setTimeout(function() {
+                            players[players_id].move(1, 15, 1);
+                        }, 1000);
+                        break;
+                    }
+                }
+                if (!isSpecial) {
+                    board.nextPlayer();
+                }
                 return true;
             }
         }
@@ -145,17 +157,17 @@
         canvas.style.zIndex = 2;
         document.body.appendChild(canvas);
         var boardFg = this.boardFg = canvas.getContext('2d');
-		
-		canvas = document.createElement('canvas');
+        
+        canvas = document.createElement('canvas');
         canvas.height = this.height;
         canvas.width = this.width;
-        canvas.style.zIndex = 3;	
-		var snake_ladder_layer = new Image();
-		snake_ladder_layer.src = this.config.snake_ladder_layer;
-		snake_ladder_layer.onload = function() {
-			canvas.getContext('2d').drawImage(snake_ladder_layer, 0, 0, canvas.width, canvas.height);
-			document.body.appendChild(canvas);
-		}
+        canvas.style.zIndex = 3;
+        var snakeLadderLayer = new Image();
+        snakeLadderLayer.src = this.config.snakeLadderLayer;
+        snakeLadderLayer.onload = function() {
+            canvas.getContext('2d').drawImage(snakeLadderLayer, 0, 0, canvas.width, canvas.height);
+            document.body.appendChild(canvas);
+        }
         
         var a = 100, b = 91, w = this.width / 10, h = this.height / 10, y = -h, x, color, i;
         boardBg.font = w / 4 + 'px Georgia';
@@ -196,17 +208,17 @@
     }
     
     b.addPlayer = function(name) {
-		if(typeof name == "undefined"){
-			this.log('Please specify name of the player.');
-			return false;
-		}
-	
+        if (typeof name == "undefined") {
+            this.log('Please specify name of the player.');
+            return false;
+        }
+        
         var id = this.players.length;
         if (id >= this.config.maxplayers) {
             this.log("Maximum players limit reached, Can't add more players");
             return false;
         }
-		
+        
         var player = new this.player(this, id, name, this.config.colors[id]);
         player.placeGoti(1);
         this.players.push(player);
@@ -246,11 +258,11 @@
     }
     
     b.showDice = function(value) {
-		value = parseInt(value);
-		if(isNaN(value) || value < 1 || value > 6) {
-			this.log("Invalid value.");
-			return false;
-		}	
+        value = parseInt(value);
+        if (isNaN(value) || value < 1 || value > 6) {
+            this.log("Invalid value.");
+            return false;
+        }
         var dice = document.getElementById('dice');
         dice.src = 'images/f' + value + '.png';
     }
