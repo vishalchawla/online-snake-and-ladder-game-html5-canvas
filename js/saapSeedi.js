@@ -5,8 +5,8 @@
         this.width = width;
         this.height = height;
         this.config = {
-            maxplayers: 3,
-            colors: ["red", "green", "blue"],
+            maxplayers: 4,
+            colors: ["red", "green", "blue", "pink"],
             snakeLadderLayer: "images/snake_ladder_layer.gif",
             snakes: [{s: 36,e: 2}, {s: 46,e: 29}, {s: 79,e: 42}, {s: 93,e: 53}],
             ladders: [{s: 8,e: 49}, {s: 22,e: 57}, {s: 54,e: 85}, {s: 61,e: 98}]
@@ -96,7 +96,7 @@
             player.placeGoti(player.position);
         }
         
-        speed = typeof speed !== 'undefined' ? speed : 100;
+        speed = typeof speed !== 'undefined' ? speed : 150;
         
         if (player.position != position) {
             window.setTimeout(function() {
@@ -105,19 +105,20 @@
         } else {
             var check = board.isSmooth(player.position);
             if (check) {
-                board.log('Not smooth');
                 setTimeout(function() {
                     player.move(check, 15, isSpecial);
                 }, 1000);
             } else {
-                var players_id;
-                for (players_id in players) {
-                    if (players[players_id]['position'] == player.position && players_id != player.id) {
-                        board.log(player.name + " killed " + players[players_id]['name'] + ".");
-                        setTimeout(function() {
-                            players[players_id].move(1, 15, 1);
-                        }, 1000);
-                        break;
+                if (player.position != 1) {
+                    var players_id;
+                    for (players_id in players) {
+                        if (players[players_id]['position'] == player.position && players_id != player.id) {
+                            board.log(player.name + " killed " + players[players_id]['name'] + ".");
+                            setTimeout(function() {
+                                players[players_id].move(1, 15, 1);
+                            }, 1000);
+                            break;
+                        }
                     }
                 }
                 if (!isSpecial) {
@@ -208,9 +209,17 @@
     }
     
     b.addPlayer = function(name) {
-        if (typeof name == "undefined") {
+        if (!name) {
             this.log('Please specify name of the player.');
             return false;
+        }
+        
+        var player_id;
+        for (player_id in players) {
+            if (players[player_id]['name'] == name) {
+                this.log(name + " is already playing, Can't you specify some other name  :/");
+                return false;
+            }
         }
         
         var id = this.players.length;
@@ -268,7 +277,8 @@
     }
     
     b.log = function(message) {
-        console.log(message);
+        alert(message);
+		//console.log(message);
     }
     
     b.player = player;
