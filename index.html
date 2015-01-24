@@ -6,10 +6,13 @@
 	<link href="css/style.css" rel="stylesheet">
 </head>
 <body>
-	<img id="dice" style="float:right;" src="">
+	<div id="controls">
+		<img id="dice"><br>
+		<input type="text" placeholder="Enter player's name" id="playerName"> <button id="addPlayer">Add Player</button>
+		<ul id="playerButtons"></ul>
+	</div>
+	<script type="text/javascript" src="js/jquery.js"></script>
 	<script type="text/javascript" src="js/saapSeedi.js"></script>
-	<script type="text/javascript">
-	saapSeedi.init();
-	</script>	
+	<script type="text/javascript" src="js/gamePlay.js"></script>
 </body>
 </html>
