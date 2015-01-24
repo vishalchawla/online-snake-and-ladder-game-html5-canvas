@@ -135,13 +135,13 @@
         }
         this.createBoard();
         
-        var img = new Image('images/f0.gif');
-        img = new Image('images/f1.png');
-        img = new Image('images/f2.png');
-        img = new Image('images/f3.png');
-        img = new Image('images/f4.png');
-        img = new Image('images/f5.png');
-        img = new Image('images/f6.png');
+        var img = new Image('images/face0.gif');
+        img = new Image('images/face1.png');
+        img = new Image('images/face2.png');
+        img = new Image('images/face3.png');
+        img = new Image('images/face4.png');
+        img = new Image('images/face5.png');
+        img = new Image('images/face6.png');
     }
     
     b.createBoard = function() {
@@ -263,7 +263,7 @@
     
     b.rollDice = function() {
         var dice = document.getElementById('dice');
-        dice.src = 'images/f0.gif';
+        dice.src = 'images/face0.gif';
     }
     
     b.showDice = function(value) {
@@ -273,7 +273,7 @@
             return false;
         }
         var dice = document.getElementById('dice');
-        dice.src = 'images/f' + value + '.png';
+        dice.src = 'images/face' + value + '.png';
     }
     
     b.log = function(message) {
