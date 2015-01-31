@@ -1,60 +1,72 @@
 saapSeedi.init();
-var players = {};
 var processing = false;
 
-function objLength(obj) {
-    var size = 0, key;
-    for (key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            size++;
-        }
+function updateDiceName() {
+    var playerName = "", playerColor = "#000000";
+    if (saapSeedi.players.length) {
+        playerName = saapSeedi.players[saapSeedi.state.turn].name;
+        playerColor = saapSeedi.players[saapSeedi.state.turn].color;
     }
-    return size;
+    $("#diceName").attr({
+        "style": "color: " + playerColor
+    }).hide().html(playerName).fadeIn(2000);
 }
 
-function createPlayerButton(name, color) {
-    var playerButton = $('<button/>').attr({
-        "class": "playerButton"
-    }).html(name);
+function movePlayer() {
+    processing = true;
     
-    $("#playerButtons").append($('<li/>').attr({
-        "style": "color: " + color
-    }).html(playerButton));
+    if (!saapSeedi.players.length) {
+        return false;
+    }
+    
+    var player = saapSeedi.players[saapSeedi.state.turn];
+    
+    var random = Math.floor((Math.random() * 6) + 1);
+
+    //Roll dice
+    saapSeedi.rollDice();
+
+    //Show dice after 1 to 3 seconds
+    setTimeout(function() {
+        saapSeedi.showDice(random);
+
+        //Fire move request after 1 second so that player can shift eyes from dice to board
+        setTimeout(function() {
+            player.position == 1 ? player.move(player.position + random - 1, undefined, random == 6, updateDiceName) : player.move(player.position + random, undefined, random == 6, updateDiceName);
+            if (random == 6) {
+                //Show message after the piece reaches destination
+                setTimeout(function() {
+                    alert("You get another bonus chance.");
+                }, saapSeedi.config.moveSpeed * 6 + 100);
+            }
+            
+            processing = false;
+        }, 1000);
+    }, Math.floor((Math.random() * 3000) + 1000));
 }
 
 $("#addPlayer").on("click", function(e) {
     var playerName = $("#playerName").val();
     var player = saapSeedi.addPlayer(playerName);
+    
     if (player) {
-        createPlayerButton(player.name, player.color);
-        players[playerName] = player;
-        $("#playerName").val('');
+        alert("Player '" + playerName + "' successfully added.");
+        $("#playerName").val("");
     }
     
-    if (objLength(players) == 4) {
+    if (saapSeedi.config.maxPlayers == saapSeedi.state.playerCount) {
         $("#playerName").hide();
         $("#addPlayer").hide();
     }
+    
+    updateDiceName();
 });
 
-$("#playerButtons").on("click", function(e) {
-    var el = e.target;
-    
-    if (el.className != "playerButton" || processing) {
-        return;
+$("#diceControl").on("click", function(e) {
+    if (processing) {
+        return false;
     }
-    
-    saapSeedi.rollDice();
-    processing = true;
-    setTimeout(function() {
-        var random = Math.floor((Math.random() * 6) + 1);
-        saapSeedi.showDice(random);
-        setTimeout(function() {
-            var player = players[$(el).html()];
-            player.position == 1 ? player.move(player.position + random - 1) : player.move(player.position + random);
-            processing = false;
-        }, 1000);
-    }, Math.floor((Math.random() * 3) + 1) * 1000);
+    movePlayer();
 });
 
 if (window.innerHeight > window.innerWidth) {

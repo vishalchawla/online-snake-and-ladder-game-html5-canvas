@@ -5,8 +5,10 @@
         this.width = width;
         this.height = height;
         this.config = {
-            maxplayers: 4,
-            colors: ["red", "green", "blue", "pink"],
+            maxPlayers: 4,
+            moveSpeed: 150,
+            runSpeed: 15,
+            colors: ["red", "blue", "green", "black"],
             snakeLadderLayer: "images/snake_ladder_layer.gif",
             snakes: [{s: 36,e: 2}, {s: 46,e: 29}, {s: 79,e: 42}, {s: 93,e: 53}],
             ladders: [{s: 8,e: 49}, {s: 22,e: 57}, {s: 54,e: 85}, {s: 61,e: 98}]
@@ -71,7 +73,7 @@
         }
     }
     
-    p.move = function(position, speed, isSpecial) {
+    p.move = function(position, speed, isSpecial, callback) {
         var player = this;
         var board = player.board;
         var players = board.players;
@@ -81,49 +83,79 @@
             return false;
         }
         
-        if (player.position == position || position > 100 || position < 1) {
+        if (position < 1) {
             board.log("Invalid move.");
             return false;
+        }
+        
+        if (position > 100) {
+            if (!isSpecial) {
+                board.nextPlayer();
+            }
+            
+            if (typeof callback == 'function') {
+                callback.call(w);
+            }
+            
+            return true;
         }
         
         if (player.position < position) {
             player.removeGoti();
             player.position++;
             player.placeGoti(player.position);
-        } else {
+        } else if (player.position > position) {
             player.removeGoti();
             player.position--;
             player.placeGoti(player.position);
+        } else {
+            player.removeGoti();
+            player.placeGoti(player.position);
         }
         
-        speed = typeof speed !== 'undefined' ? speed : 150;
+        speed = typeof speed !== 'undefined' ? speed : board.config.moveSpeed;
         
         if (player.position != position) {
             window.setTimeout(function() {
-                player.move(position, speed, isSpecial);
+                player.move(position, speed, isSpecial, callback);
             }, speed);
         } else {
-            var check = board.isSmooth(player.position);
+            //Check snake or ladder
+            var check = board.isClear(player.position);
             if (check) {
                 setTimeout(function() {
-                    player.move(check, 15, isSpecial);
+                    player.move(check, board.config.runSpeed, isSpecial, callback);
                 }, 1000);
             } else {
+                //Check kill
                 if (player.position != 1) {
                     var players_id;
                     for (players_id in players) {
                         if (players[players_id]['position'] == player.position && players_id != player.id) {
                             board.log(player.name + " killed " + players[players_id]['name'] + ".");
                             setTimeout(function() {
-                                players[players_id].move(1, 15, 1);
+                                players[players_id].move(1, board.config.runSpeed, true, callback);
                             }, 1000);
                             break;
                         }
                     }
                 }
+                
                 if (!isSpecial) {
                     board.nextPlayer();
                 }
+                //Check win
+                if (player.position == 100) {
+                    board.log("Congrats " + player.name + ", You just won the game.");
+                    players.splice(player.id, 1);
+                    board.state.playerCount--;
+                    isSpecial = false;
+                }
+                
+                if (typeof callback == 'function') {
+                    callback.call(w);
+                }
+                
                 return true;
             }
         }
@@ -214,7 +246,7 @@
             return false;
         }
         
-        var player_id;
+        var players = this.players, player_id;
         for (player_id in players) {
             if (players[player_id]['name'] == name) {
                 this.log(name + " is already playing, Can't you specify some other name  :/");
@@ -222,15 +254,15 @@
             }
         }
         
-        var id = this.players.length;
-        if (id >= this.config.maxplayers) {
+        var id = players.length;
+        if (id >= this.config.maxPlayers) {
             this.log("Maximum players limit reached, Can't add more players");
             return false;
         }
         
         var player = new this.player(this, id, name, this.config.colors[id]);
         player.placeGoti(1);
-        this.players.push(player);
+        players.push(player);
         this.state.playerCount++;
         return player;
     }
@@ -243,7 +275,7 @@
         }
     }
     
-    b.isSmooth = function(position) {
+    b.isClear = function(position) {
         var snakes = this.config.snakes;
         for (var key in snakes) {
             if (snakes[key].s == position) {
@@ -278,7 +310,7 @@
     
     b.log = function(message) {
         alert(message);
-		//console.log(message);
+    //console.log(message);
     }
     
     b.player = player;
