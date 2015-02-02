@@ -1,3 +1,10 @@
+/*********************************************************************************
+
+Looks like you have good hands in Javascript, We are hiring Javascript Hackers at 
+AdPushup (New Delhi, India Office). Check out http://careers.adpushup.com
+
+*********************************************************************************/
+
 (function(w, d) {
     function board(width, height) {
         this.boardBg = null;
