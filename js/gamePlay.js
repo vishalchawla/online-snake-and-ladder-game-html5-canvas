@@ -16,6 +16,7 @@ function movePlayer() {
     processing = true;
     
     if (!saapSeedi.players.length) {
+        processing = false;
         return false;
     }
     
